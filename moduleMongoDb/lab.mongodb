@@ -1,12 +1,14 @@
 use('airbnb');
 
+// db.listingsAndReviews.find().pretty()
+
 // Saca en una consulta cuantos apartamentos hay en España.
 
-/*db.listingsAndReviews.count(
+db.listingsAndReviews.count(
   {
     'address.country': {$eq: 'Spain'},
   }
-)*/
+)
 
 /*
 Lista los 10 primeros:
@@ -14,6 +16,16 @@ Lista los 10 primeros:
 - Sólo muestra: nombre, camas, precio, government_area
 - Ordenados por precio.
 */
+
+db.listingsAndReviews.find({
+  'address.country': { $eq: 'Spain' }
+  },
+  {
+    name: 1,
+    beds: 1,
+    price: 1,
+    goverment_area: 1,
+  }).sort({price: -1}).limit(10)
 
 /*db.listingsAndReviews.aggregate([
   {
@@ -46,6 +58,17 @@ Queremos viajar comodos, somos 4 personas y queremos:
 - Dos cuartos de baño.
 */
 
+db.listingsAndReviews.find(
+  {
+    beds: { $eq: 4 }, bathrooms: { $eq: 2 }
+  },
+  {
+    name: 1,
+    beds: 1,
+    price: 1,
+    bathrooms: 1,
+  })
+
 /*db.listingsAndReviews.aggregate([
   {
     $match: {
@@ -64,6 +87,13 @@ Queremos viajar comodos, somos 4 personas y queremos:
 ])*/
 
 // Al requisito anterior,hay que añadir que nos gusta la tecnología queremos que el apartamento tenga wifi.
+
+db.listingsAndReviews.find(
+  {
+    beds: { $eq: 4 }, bathrooms: { $eq: 2 },
+    amenities: { $all: ['Wifi'], },
+  },
+  { name: 1, beds: 1, price: 1, bathrooms: 1, amenities: 1 })
 
 /*db.listingsAndReviews.aggregate([
   {
@@ -87,6 +117,12 @@ Queremos viajar comodos, somos 4 personas y queremos:
 ])*/
 
 // Y bueno, un amigo se ha unido que trae un perro, así que a la query anterior tenemos que buscar que permitan mascota Pets Allowed
+
+db.listingsAndReviews.find(
+  { beds: { $eq: 4 }, bathrooms: { $eq: 2 },
+    amenities: { $all: ['Wifi', 'Pets allowed'],
+  },},
+ { name: 1, beds: 1, price: 1, bathrooms: 1, amenities: 1 })
 
 /*db.listingsAndReviews.aggregate([
   {
@@ -112,6 +148,23 @@ Queremos viajar comodos, somos 4 personas y queremos:
 
 // Estamos entre ir a Barcelona o a Portugal, los dos destinos nos valen, peeero... queremos que el precio nos salga baratito (50 $), y que tenga buen rating de reviews
 
+db.listingsAndReviews.find({$and: [
+      {
+        price: { $lte: 50 }
+      },
+      {
+        number_of_reviews: { $gte: 5 }
+      },
+      {
+        $or: [
+          {"address.market": 'Barcelona'},
+          {"address.country": 'Portugal'},
+        ]
+      }
+    ]}, { "address.market": 1, name: 1, price: 1, number_of_reviews: 1 })
+
+
+
 /*db.listingsAndReviews.find(
   {
     $and: [
@@ -130,7 +183,6 @@ Queremos viajar comodos, somos 4 personas y queremos:
     ]
   }, {"address.market": 1, name: 1, price: 1, number_of_reviews: 1})*/
 
-
 /*
 Queremos mostrar los pisos que hay en España, y los siguiente campos:
 - Nombre.
@@ -138,7 +190,7 @@ Queremos mostrar los pisos que hay en España, y los siguiente campos:
 - El precio (no queremos mostrar un objeto, sólo el campo de precio)
 */
 
-/*db.listingsAndReviews.aggregate([
+db.listingsAndReviews.aggregate([
   {
     $match: {
       'address.country': 'Spain',
@@ -151,11 +203,11 @@ Queremos mostrar los pisos que hay en España, y los siguiente campos:
       'price': 1,
     },
   },
-])*/
+])
 
 // Queremos saber cuantos alojamientos hay disponibles por pais.
 
-/*db.listingsAndReviews.aggregate([
+db.listingsAndReviews.aggregate([
   {
     $unwind: {
       path: '$address.country'
@@ -174,11 +226,11 @@ Queremos mostrar los pisos que hay en España, y los siguiente campos:
       totalRooms: 1
     }
   },
-])*/
+])
 
 // Queremos saber el precio medio de alquiler de airbnb en España.
 
-/*db.listingsAndReviews.aggregate([
+db.listingsAndReviews.aggregate([
   {
     $match: {
       'address.country': {$eq: 'Spain'},
@@ -198,11 +250,11 @@ Queremos mostrar los pisos que hay en España, y los siguiente campos:
       averagePrice: 1
     }
   }
-])*/
+])
 
 // ¿Y si quisieramos hacer como el anterior, pero sacarlo por paises?
 
-/*db.listingsAndReviews.aggregate([
+db.listingsAndReviews.aggregate([
   {
     $group: {
       _id: '$address.country',
@@ -217,11 +269,11 @@ Queremos mostrar los pisos que hay en España, y los siguiente campos:
       averagePrice: 1
     }
   }
-])*/
+])
 
 // Repite los mismos pasos pero agrupando también por numero de habitaciones.
 
-/*db.listingsAndReviews.aggregate([
+db.listingsAndReviews.aggregate([
   {
     $group: {
       _id: '$address.country',
@@ -236,7 +288,7 @@ Queremos mostrar los pisos que hay en España, y los siguiente campos:
       averageRooms: 1
     }
   }
-]);*/
+]);
 
 /*
 Queremos mostrar el top 5 de apartamentos más caros en España, y sacar los siguentes campos:
@@ -246,7 +298,7 @@ Queremos mostrar el top 5 de apartamentos más caros en España, y sacar los sig
 - Amenities, pero en vez de un array, un string con todos los ammenities.
 */
 
-/*db.listingsAndReviews.aggregate([
+db.listingsAndReviews.aggregate([
   {
     $match: {
       'address.country': { $eq: 'Spain' },
@@ -268,4 +320,4 @@ Queremos mostrar el top 5 de apartamentos más caros en España, y sacar los sig
   {
     $limit: 5
   }
-])*/
+])
